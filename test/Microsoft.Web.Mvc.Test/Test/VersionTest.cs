@@ -1,5 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
 using System;
 using System.Web.Mvc;
@@ -13,7 +12,7 @@ namespace Microsoft.Web.Test
         public void VerifyMVCVersionChangesAreIntentional()
         {
             Version mvcVersion = VersionTestHelper.GetVersionFromAssembly("System.Web.Mvc", typeof(Controller));
-            Assert.Equal(new Version(5, 2, 7, 0), mvcVersion);
+            Assert.Equal(new Version(5, 2, 2, 0), mvcVersion);
         }
     }
 }

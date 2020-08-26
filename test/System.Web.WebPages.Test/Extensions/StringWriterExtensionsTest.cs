@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+=======
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+>>>>>>> origin/v3.2.2-vspatch
 
 using System.IO;
 using System.Linq;
@@ -77,11 +81,20 @@ namespace System.Web.WebPages.Test
         [Theory]
         [InlineData(1)]
         [InlineData(1023/7)]
+<<<<<<< HEAD
+=======
+        [InlineData(1024/7)]
+        [InlineData(1025/7)]
+>>>>>>> origin/v3.2.2-vspatch
         [InlineData(20000/7)]
         [InlineData(100000/7)]
         public void ProperlyCopiesLargeSetsOfText(int count)
         {
+<<<<<<< HEAD
             // The char א turns into a two byte sequence so we end up with a
+=======
+            // The char א turns into a two byte sequence so we end up with a 
+>>>>>>> origin/v3.2.2-vspatch
             // 7 byte sequence that is not a divider or 1024.
             string text = string.Join(string.Empty, Enumerable.Repeat("abcdeא", count));
 

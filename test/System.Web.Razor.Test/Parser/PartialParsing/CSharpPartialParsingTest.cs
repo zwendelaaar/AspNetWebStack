@@ -1,5 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
 using System.Web.Razor.Parser;
 using System.Web.Razor.Parser.SyntaxTree;
@@ -85,20 +84,18 @@ namespace System.Web.Razor.Test.Parser.PartialParsing
             RazorEngineHost host = CreateHost();
             RazorEditorParser parser = new RazorEditorParser(host, @"C:\This\Is\A\Test\Path");
 
-            using (TestParserManager manager = new TestParserManager(parser))
-            {
-                StringTextBuffer old = new StringTextBuffer("foo @date baz");
-                StringTextBuffer changed = new StringTextBuffer("foo @if baz");
-                TextChange textChange = new TextChange(5, 4, old, 2, changed);
-                manager.InitializeWithDocument(old);
+            TestParserManager manager = new TestParserManager(parser);
+            StringTextBuffer old = new StringTextBuffer("foo @date baz");
+            StringTextBuffer changed = new StringTextBuffer("foo @if baz");
+            TextChange textChange = new TextChange(5, 4, old, 2, changed);
+            manager.InitializeWithDocument(old);
 
-                // Act
-                PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
+            // Act
+            PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
 
-                // Assert
-                Assert.Equal(PartialParseResult.Rejected, result);
-                Assert.Equal(2, manager.ParseCount);
-            }
+            // Assert
+            Assert.Equal(PartialParseResult.Rejected, result);
+            Assert.Equal(2, manager.ParseCount);
         }
 
         [Fact]
@@ -108,20 +105,18 @@ namespace System.Web.Razor.Test.Parser.PartialParsing
             RazorEngineHost host = CreateHost();
             RazorEditorParser parser = new RazorEditorParser(host, @"C:\This\Is\A\Test\Path");
 
-            using (var manager = new TestParserManager(parser))
-            {
-                StringTextBuffer old = new StringTextBuffer("foo @date baz");
-                StringTextBuffer changed = new StringTextBuffer("foo @inherits baz");
-                TextChange textChange = new TextChange(5, 4, old, 8, changed);
-                manager.InitializeWithDocument(old);
+            TestParserManager manager = new TestParserManager(parser);
+            StringTextBuffer old = new StringTextBuffer("foo @date baz");
+            StringTextBuffer changed = new StringTextBuffer("foo @inherits baz");
+            TextChange textChange = new TextChange(5, 4, old, 8, changed);
+            manager.InitializeWithDocument(old);
 
-                // Act
-                PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
+            // Act
+            PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
 
-                // Assert
-                Assert.Equal(PartialParseResult.Rejected | PartialParseResult.SpanContextChanged, result);
-                Assert.Equal(2, manager.ParseCount);
-            }
+            // Assert
+            Assert.Equal(PartialParseResult.Rejected | PartialParseResult.SpanContextChanged, result);
+            Assert.Equal(2, manager.ParseCount);
         }
 
         [Fact]
@@ -226,52 +221,50 @@ namespace System.Web.Razor.Test.Parser.PartialParsing
                                                       + "}");
 
             var textChange = new TextChange(17, 0, old, 1, changed);
-            using (TestParserManager manager = CreateParserManager())
+            TestParserManager manager = CreateParserManager();
+            Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
             {
-                Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
-                {
-                    PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
+                PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
 
-                    // Assert
-                    Assert.Equal(expectedResult, result);
-                    Assert.Equal(1, manager.ParseCount);
-                    ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
-                        factory.EmptyHtml(),
-                        new StatementBlock(
+                // Assert
+                Assert.Equal(expectedResult, result);
+                Assert.Equal(1, manager.ParseCount);
+                ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
+                    factory.EmptyHtml(),
+                    new StatementBlock(
+                        factory.CodeTransition(),
+                        factory.MetaCode("{").Accepts(AcceptedCharacters.None),
+                        factory.Code("\r\n    ").AsStatement(),
+                        new ExpressionBlock(
                             factory.CodeTransition(),
-                            factory.MetaCode("{").Accepts(AcceptedCharacters.None),
-                            factory.Code("\r\n    ").AsStatement(),
-                            new ExpressionBlock(
-                                factory.CodeTransition(),
-                                factory.Code(expectedCode)
-                                       .AsImplicitExpression(CSharpCodeParser.DefaultKeywords, acceptTrailingDot: true)
-                                       .Accepts(AcceptedCharacters.NonWhiteSpace)),
-                            factory.Code("\r\n").AsStatement(),
-                            factory.MetaCode("}").Accepts(AcceptedCharacters.None)),
-                        factory.EmptyHtml()));
-                };
+                            factory.Code(expectedCode)
+                                   .AsImplicitExpression(CSharpCodeParser.DefaultKeywords, acceptTrailingDot: true)
+                                   .Accepts(AcceptedCharacters.NonWhiteSpace)),
+                        factory.Code("\r\n").AsStatement(),
+                        factory.MetaCode("}").Accepts(AcceptedCharacters.None)),
+                    factory.EmptyHtml()));
+            };
 
-                manager.InitializeWithDocument(textChange.OldBuffer);
+            manager.InitializeWithDocument(textChange.OldBuffer);
 
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime.");
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime.");
 
-                old = changed;
-                changed = new StringTextBuffer("@{" + Environment.NewLine
-                                            + "    @DateTime.." + Environment.NewLine
-                                            + "}");
-                textChange = new TextChange(18, 0, old, 1, changed);
+            old = changed;
+            changed = new StringTextBuffer("@{" + Environment.NewLine
+                                        + "    @DateTime.." + Environment.NewLine
+                                        + "}");
+            textChange = new TextChange(18, 0, old, 1, changed);
 
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime..");
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime..");
 
-                old = changed;
-                changed = new StringTextBuffer("@{" + Environment.NewLine
-                                            + "    @DateTime.Now." + Environment.NewLine
-                                            + "}");
-                textChange = new TextChange(18, 0, old, 3, changed);
+            old = changed;
+            changed = new StringTextBuffer("@{" + Environment.NewLine
+                                        + "    @DateTime.Now." + Environment.NewLine
+                                        + "}");
+            textChange = new TextChange(18, 0, old, 3, changed);
 
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime.Now.");
-            }
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime.Now.");
         }
 
         [Fact]
@@ -286,44 +279,42 @@ namespace System.Web.Razor.Test.Parser.PartialParsing
                                                       + "}");
 
             var textChange = new TextChange(14, 0, old, 1, changed);
-            using (TestParserManager manager = CreateParserManager())
+            TestParserManager manager = CreateParserManager();
+            Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
             {
-                Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
-                {
-                    PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
+                PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
 
-                    // Assert
-                    Assert.Equal(expectedResult, result);
-                    Assert.Equal(1, manager.ParseCount);
-                    ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
-                        factory.EmptyHtml(),
-                        new StatementBlock(
+                // Assert
+                Assert.Equal(expectedResult, result);
+                Assert.Equal(1, manager.ParseCount);
+                ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
+                    factory.EmptyHtml(),
+                    new StatementBlock(
+                        factory.CodeTransition(),
+                        factory.MetaCode("{").Accepts(AcceptedCharacters.None),
+                        factory.Code("\r\n    ").AsStatement(),
+                        new ExpressionBlock(
                             factory.CodeTransition(),
-                            factory.MetaCode("{").Accepts(AcceptedCharacters.None),
-                            factory.Code("\r\n    ").AsStatement(),
-                            new ExpressionBlock(
-                                factory.CodeTransition(),
-                                factory.Code(expectedCode)
-                                       .AsImplicitExpression(CSharpCodeParser.DefaultKeywords, acceptTrailingDot: true)
-                                       .Accepts(AcceptedCharacters.NonWhiteSpace)),
-                            factory.Code("\r\n").AsStatement(),
-                            factory.MetaCode("}").Accepts(AcceptedCharacters.None)),
-                        factory.EmptyHtml()));
-                };
+                            factory.Code(expectedCode)
+                                   .AsImplicitExpression(CSharpCodeParser.DefaultKeywords, acceptTrailingDot: true)
+                                   .Accepts(AcceptedCharacters.NonWhiteSpace)),
+                        factory.Code("\r\n").AsStatement(),
+                        factory.MetaCode("}").Accepts(AcceptedCharacters.None)),
+                    factory.EmptyHtml()));
+            };
 
-                manager.InitializeWithDocument(textChange.OldBuffer);
+            manager.InitializeWithDocument(textChange.OldBuffer);
 
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateT.");
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateT.");
 
-                old = changed;
-                changed = new StringTextBuffer("@{" + Environment.NewLine
-                                            + "    @DateTime." + Environment.NewLine
-                                            + "}");
-                textChange = new TextChange(14, 0, old, 3, changed);
+            old = changed;
+            changed = new StringTextBuffer("@{" + Environment.NewLine
+                                        + "    @DateTime." + Environment.NewLine
+                                        + "}");
+            textChange = new TextChange(14, 0, old, 3, changed);
 
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime.");
-            }
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime.");
         }
 
         [Fact]
@@ -333,35 +324,33 @@ namespace System.Web.Razor.Test.Parser.PartialParsing
             var changed = new StringTextBuffer("foo @DateT. baz");
             var old = new StringTextBuffer("foo @DateT baz");
             var textChange = new TextChange(10, 0, old, 1, changed);
-            using (TestParserManager manager = CreateParserManager())
+            TestParserManager manager = CreateParserManager();
+            Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
             {
-                Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
-                {
-                    PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
+                PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
 
-                    // Assert
-                    Assert.Equal(expectedResult, result);
-                    Assert.Equal(1, manager.ParseCount);
+                // Assert
+                Assert.Equal(expectedResult, result);
+                Assert.Equal(1, manager.ParseCount);
 
-                    ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
-                        factory.Markup("foo "),
-                        new ExpressionBlock(
-                            factory.CodeTransition(),
-                            factory.Code(expectedCode).AsImplicitExpression(CSharpCodeParser.DefaultKeywords).Accepts(AcceptedCharacters.NonWhiteSpace)),
-                        factory.Markup(" baz")));
-                };
+                ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
+                    factory.Markup("foo "),
+                    new ExpressionBlock(
+                        factory.CodeTransition(),
+                        factory.Code(expectedCode).AsImplicitExpression(CSharpCodeParser.DefaultKeywords).Accepts(AcceptedCharacters.NonWhiteSpace)),
+                    factory.Markup(" baz")));
+            };
 
-                manager.InitializeWithDocument(textChange.OldBuffer);
+            manager.InitializeWithDocument(textChange.OldBuffer);
 
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateT.");
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateT.");
 
-                old = changed;
-                changed = new StringTextBuffer("foo @DateTime. baz");
-                textChange = new TextChange(10, 0, old, 3, changed);
+            old = changed;
+            changed = new StringTextBuffer("foo @DateTime. baz");
+            textChange = new TextChange(10, 0, old, 3, changed);
 
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime.");
-            }
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime.");
         }
 
         [Fact]
@@ -371,41 +360,39 @@ namespace System.Web.Razor.Test.Parser.PartialParsing
             var changed = new StringTextBuffer("foo @DateTime. baz");
             var old = new StringTextBuffer("foo @DateTime baz");
             var textChange = new TextChange(13, 0, old, 1, changed);
-            using (TestParserManager manager = CreateParserManager())
+            TestParserManager manager = CreateParserManager();
+            Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
             {
-                Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
-                {
-                    PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
+                PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
 
-                    // Assert
-                    Assert.Equal(expectedResult, result);
-                    Assert.Equal(1, manager.ParseCount);
+                // Assert
+                Assert.Equal(expectedResult, result);
+                Assert.Equal(1, manager.ParseCount);
 
-                    ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
-                        factory.Markup("foo "),
-                        new ExpressionBlock(
-                            factory.CodeTransition(),
-                            factory.Code(expectedCode).AsImplicitExpression(CSharpCodeParser.DefaultKeywords).Accepts(AcceptedCharacters.NonWhiteSpace)),
-                        factory.Markup(" baz")));
-                };
+                ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
+                    factory.Markup("foo "),
+                    new ExpressionBlock(
+                        factory.CodeTransition(),
+                        factory.Code(expectedCode).AsImplicitExpression(CSharpCodeParser.DefaultKeywords).Accepts(AcceptedCharacters.NonWhiteSpace)),
+                    factory.Markup(" baz")));
+            };
 
-                manager.InitializeWithDocument(textChange.OldBuffer);
+            manager.InitializeWithDocument(textChange.OldBuffer);
 
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime.");
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime.");
 
-                old = changed;
-                changed = new StringTextBuffer("foo @DateTime.. baz");
-                textChange = new TextChange(14, 0, old, 1, changed);
+            old = changed;
+            changed = new StringTextBuffer("foo @DateTime.. baz");
+            textChange = new TextChange(14, 0, old, 1, changed);
 
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime..");
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime..");
 
-                old = changed;
-                changed = new StringTextBuffer("foo @DateTime.Now. baz");
-                textChange = new TextChange(14, 0, old, 3, changed);
+            old = changed;
+            changed = new StringTextBuffer("foo @DateTime.Now. baz");
+            textChange = new TextChange(14, 0, old, 3, changed);
 
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime.Now.");
-            }
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime.Now.");
         }
 
         [Fact]
@@ -415,52 +402,50 @@ namespace System.Web.Razor.Test.Parser.PartialParsing
             StringTextBuffer old = new StringTextBuffer("foo @date baz");
             StringTextBuffer changed = new StringTextBuffer("foo @date. baz");
             TextChange textChange = new TextChange(9, 0, old, 1, changed);
-            using (TestParserManager manager = CreateParserManager())
+            TestParserManager manager = CreateParserManager();
+            Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
             {
-                Action<TextChange, PartialParseResult, string> applyAndVerifyPartialChange = (changeToApply, expectedResult, expectedCode) =>
-                {
-                    PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
+                PartialParseResult result = manager.CheckForStructureChangesAndWait(textChange);
 
-                    // Assert
-                    Assert.Equal(expectedResult, result);
-                    Assert.Equal(1, manager.ParseCount);
+                // Assert
+                Assert.Equal(expectedResult, result);
+                Assert.Equal(1, manager.ParseCount);
 
-                    ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
-                        factory.Markup("foo "),
-                        new ExpressionBlock(
-                            factory.CodeTransition(),
-                            factory.Code(expectedCode).AsImplicitExpression(CSharpCodeParser.DefaultKeywords).Accepts(AcceptedCharacters.NonWhiteSpace)),
-                        factory.Markup(" baz")));
-                };
+                ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree, new MarkupBlock(
+                    factory.Markup("foo "),
+                    new ExpressionBlock(
+                        factory.CodeTransition(),
+                        factory.Code(expectedCode).AsImplicitExpression(CSharpCodeParser.DefaultKeywords).Accepts(AcceptedCharacters.NonWhiteSpace)),
+                    factory.Markup(" baz")));
+            };
 
-                manager.InitializeWithDocument(textChange.OldBuffer);
+            manager.InitializeWithDocument(textChange.OldBuffer);
 
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
 
-                // @date => @date.
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "date.");
+            // @date => @date.
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "date.");
 
-                old = changed;
-                changed = new StringTextBuffer("foo @date baz");
-                textChange = new TextChange(9, 1, old, 0, changed);
+            old = changed;
+            changed = new StringTextBuffer("foo @date baz");
+            textChange = new TextChange(9, 1, old, 0, changed);
 
-                // @date. => @date
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "date");
+            // @date. => @date
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "date");
 
-                old = changed;
-                changed = new StringTextBuffer("foo @DateTime baz");
-                textChange = new TextChange(5, 4, old, 8, changed);
+            old = changed;
+            changed = new StringTextBuffer("foo @DateTime baz");
+            textChange = new TextChange(5, 4, old, 8, changed);
 
-                // @date => @DateTime
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime");
+            // @date => @DateTime
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted, "DateTime");
 
-                old = changed;
-                changed = new StringTextBuffer("foo @DateTime. baz");
-                textChange = new TextChange(13, 0, old, 1, changed);
+            old = changed;
+            changed = new StringTextBuffer("foo @DateTime. baz");
+            textChange = new TextChange(13, 0, old, 1, changed);
 
-                // @DateTime => @DateTime.
-                applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime.");
-            }
+            // @DateTime => @DateTime.
+            applyAndVerifyPartialChange(textChange, PartialParseResult.Accepted | PartialParseResult.Provisional, "DateTime.");
         }
 
         [Fact]
@@ -614,35 +599,33 @@ namespace System.Web.Razor.Test.Parser.PartialParsing
             // Arrange
             TextChange dotTyped = new TextChange(8, 0, new StringTextBuffer("foo @foo @bar"), 1, new StringTextBuffer("foo @foo. @bar"));
             TextChange charTyped = new TextChange(14, 0, new StringTextBuffer("foo @foo. @bar"), 1, new StringTextBuffer("foo @foo. @barb"));
-            using (TestParserManager manager = CreateParserManager())
-            {
-                manager.InitializeWithDocument(dotTyped.OldBuffer);
+            TestParserManager manager = CreateParserManager();
+            manager.InitializeWithDocument(dotTyped.OldBuffer);
 
-                // Apply the dot change
-                Assert.Equal(PartialParseResult.Provisional | PartialParseResult.Accepted, manager.CheckForStructureChangesAndWait(dotTyped));
+            // Apply the dot change
+            Assert.Equal(PartialParseResult.Provisional | PartialParseResult.Accepted, manager.CheckForStructureChangesAndWait(dotTyped));
 
-                // Act (apply the identifier start char change)
-                PartialParseResult result = manager.CheckForStructureChangesAndWait(charTyped);
+            // Act (apply the identifier start char change)
+            PartialParseResult result = manager.CheckForStructureChangesAndWait(charTyped);
 
-                // Assert
-                Assert.Equal(PartialParseResult.Rejected, result);
-                Assert.False(manager.Parser.LastResultProvisional, "LastResultProvisional flag should have been cleared but it was not");
-                ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree,
-                    new MarkupBlock(
-                        factory.Markup("foo "),
-                        new ExpressionBlock(
-                            factory.CodeTransition(),
-                            factory.Code("foo")
-                                   .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
-                                   .Accepts(AcceptedCharacters.NonWhiteSpace)),
-                        factory.Markup(". "),
-                        new ExpressionBlock(
-                            factory.CodeTransition(),
-                            factory.Code("barb")
-                                   .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
-                                   .Accepts(AcceptedCharacters.NonWhiteSpace)),
-                        factory.EmptyHtml()));
-            }
+            // Assert
+            Assert.Equal(PartialParseResult.Rejected, result);
+            Assert.False(manager.Parser.LastResultProvisional, "LastResultProvisional flag should have been cleared but it was not");
+            ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree,
+                new MarkupBlock(
+                    factory.Markup("foo "),
+                    new ExpressionBlock(
+                        factory.CodeTransition(),
+                        factory.Code("foo")
+                               .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
+                               .Accepts(AcceptedCharacters.NonWhiteSpace)),
+                    factory.Markup(". "),
+                    new ExpressionBlock(
+                        factory.CodeTransition(),
+                        factory.Code("barb")
+                               .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
+                               .Accepts(AcceptedCharacters.NonWhiteSpace)),
+                    factory.EmptyHtml()));
         }
 
         [Fact]
@@ -653,29 +636,27 @@ namespace System.Web.Razor.Test.Parser.PartialParsing
             // Arrange
             TextChange dotTyped = new TextChange(8, 0, new StringTextBuffer("foo @foo bar"), 1, new StringTextBuffer("foo @foo. bar"));
             TextChange charTyped = new TextChange(9, 0, new StringTextBuffer("foo @foo. bar"), 1, new StringTextBuffer("foo @foo.b bar"));
-            using (TestParserManager manager = CreateParserManager())
-            {
-                manager.InitializeWithDocument(dotTyped.OldBuffer);
+            TestParserManager manager = CreateParserManager();
+            manager.InitializeWithDocument(dotTyped.OldBuffer);
 
-                // Apply the dot change
-                Assert.Equal(PartialParseResult.Provisional | PartialParseResult.Accepted, manager.CheckForStructureChangesAndWait(dotTyped));
+            // Apply the dot change
+            Assert.Equal(PartialParseResult.Provisional | PartialParseResult.Accepted, manager.CheckForStructureChangesAndWait(dotTyped));
 
-                // Act (apply the identifier start char change)
-                PartialParseResult result = manager.CheckForStructureChangesAndWait(charTyped);
+            // Act (apply the identifier start char change)
+            PartialParseResult result = manager.CheckForStructureChangesAndWait(charTyped);
 
-                // Assert
-                Assert.Equal(PartialParseResult.Accepted, result);
-                Assert.False(manager.Parser.LastResultProvisional, "LastResultProvisional flag should have been cleared but it was not");
-                ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree,
-                    new MarkupBlock(
-                        factory.Markup("foo "),
-                        new ExpressionBlock(
-                            factory.CodeTransition(),
-                            factory.Code("foo.b")
-                                   .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
-                                   .Accepts(AcceptedCharacters.NonWhiteSpace)),
-                        factory.Markup(" bar")));
-            }
+            // Assert
+            Assert.Equal(PartialParseResult.Accepted, result);
+            Assert.False(manager.Parser.LastResultProvisional, "LastResultProvisional flag should have been cleared but it was not");
+            ParserTestBase.EvaluateParseTree(manager.Parser.CurrentParseTree,
+                new MarkupBlock(
+                    factory.Markup("foo "),
+                    new ExpressionBlock(
+                        factory.CodeTransition(),
+                        factory.Code("foo.b")
+                               .AsImplicitExpression(CSharpCodeParser.DefaultKeywords)
+                               .Accepts(AcceptedCharacters.NonWhiteSpace)),
+                    factory.Markup(" bar")));
         }
 
         [Fact]
