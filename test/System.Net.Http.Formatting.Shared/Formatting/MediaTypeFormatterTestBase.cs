@@ -22,6 +22,13 @@ namespace System.Net.Http.Formatting
     /// <typeparam name="TFormatter">The type of formatter under test.</typeparam>
     public abstract class MediaTypeFormatterTestBase<TFormatter> where TFormatter : MediaTypeFormatter
     {
+        private static readonly Encoding _encoding =
+#if NETSTANDARD1_3
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+#else
+            Encoding.Default;
+#endif
+
         protected MediaTypeFormatterTestBase()
         {
         }
@@ -111,7 +118,9 @@ namespace System.Net.Http.Formatting
             // Assert
             mockStream.Verify(s => s.Read(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never());
             mockStream.Verify(s => s.ReadByte(), Times.Never());
+#if !NETSTANDARD1_3
             mockStream.Verify(s => s.BeginRead(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<AsyncCallback>(), It.IsAny<object>()), Times.Never());
+#endif
         }
 
         [Fact]
@@ -129,7 +138,11 @@ namespace System.Net.Http.Formatting
             await formatter.ReadFromStreamAsync(typeof(SampleType), mockStream.Object, content, mockFormatterLogger);
 
             // Assert
+#if NETSTANDARD1_3
+            mockStream.Verify(s => s.Dispose(), Times.Never());
+#else
             mockStream.Verify(s => s.Close(), Times.Never());
+#endif
         }
 
         [Theory]
@@ -214,8 +227,12 @@ namespace System.Net.Http.Formatting
             await formatter.WriteToStreamAsync(typeof(SampleType), null, mockStream.Object, content, null);
 
             // Assert
+#if NETSTANDARD1_3
+            mockStream.Verify(s => s.Dispose(), Times.Never());
+#else
             mockStream.Verify(s => s.Close(), Times.Never());
             mockStream.Verify(s => s.BeginWrite(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<AsyncCallback>(), It.IsAny<object>()), Times.Never());
+#endif
         }
 
         [Fact]
@@ -285,7 +302,7 @@ namespace System.Net.Http.Formatting
             Stream stream = new MemoryStream();
             Mock<TFormatter> formatter = CreateMockFormatter();
             formatter.Object.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/test"));
-            StringContent content = new StringContent(" ", Encoding.Default, "application/test");
+            StringContent content = new StringContent(" ", _encoding, "application/test");
             CancellationTokenSource cts = new CancellationTokenSource();
 
             formatter
@@ -307,7 +324,7 @@ namespace System.Net.Http.Formatting
             Stream stream = new MemoryStream();
             Mock<TFormatter> formatter = CreateMockFormatter();
             formatter.Object.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/test"));
-            StringContent content = new StringContent(" ", Encoding.Default, "application/test");
+            StringContent content = new StringContent(" ", _encoding, "application/test");
             CancellationTokenSource cts = new CancellationTokenSource();
 
             formatter
