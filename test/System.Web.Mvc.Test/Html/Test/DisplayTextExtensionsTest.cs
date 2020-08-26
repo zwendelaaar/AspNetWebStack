@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+=======
+﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
+>>>>>>> origin/v3-rtm
 
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
@@ -10,6 +14,35 @@ namespace System.Web.Mvc.Html.Test
 {
     public class DisplayTextExtensionsTest
     {
+<<<<<<< HEAD
+=======
+        public static TheoryDataSet<string, bool, string> DisplayTextData
+        {
+            get
+            {
+                return new TheoryDataSet<string, bool, string>
+                {
+                    { "Simple Display Text", false, "Simple Display Text" },
+                    { "Simple Display Text", true, "Simple Display Text" },
+                    { "<blink>text</blink>", false, "<blink>text</blink>" },
+                    { "<blink>text</blink>", true, "&lt;blink&gt;text&lt;/blink&gt;" },
+                    { "&'\"", false, "&'\"" },
+                    { "&'\"", true, "&amp;&#39;&quot;" },
+                    { " ¡ÿĀ", false, " ¡ÿĀ" },                                           // high ASCII
+                    { " ¡ÿĀ", true, "&#160;&#161;&#255;Ā" },
+                    { "Chinese西雅图Chars", false, "Chinese西雅图Chars" },
+                    { "Chinese西雅图Chars", true, "Chinese西雅图Chars" },
+                    { "Unicode؃Format؃Char", false, "Unicode؃Format؃Char" },            // class Cf
+                    { "Unicode؃Format؃Char", true, "Unicode؃Format؃Char" },
+                    { "UnicodeῼTitlecaseῼChar", false, "UnicodeῼTitlecaseῼChar" },       // class Lt
+                    { "UnicodeῼTitlecaseῼChar", true, "UnicodeῼTitlecaseῼChar" },
+                    { "UnicodeःCombiningःChar", false, "UnicodeःCombiningःChar" },    // class Mc
+                    { "UnicodeःCombiningःChar", true, "UnicodeःCombiningःChar" },
+                };
+            }
+        }
+
+>>>>>>> origin/v3-rtm
         [Fact]
         public void DisplayText_ThrowsArgumentNull_IfNameNull()
         {
@@ -141,7 +174,11 @@ namespace System.Web.Mvc.Html.Test
         }
 
         [Theory]
+<<<<<<< HEAD
         [PropertyData("ConditionallyHtmlEncodedData", PropertyType = typeof(EncodedDataSets))]
+=======
+        [PropertyData("DisplayTextData")]
+>>>>>>> origin/v3-rtm
         public void DisplayText_HonoursHtmlEncode_IfOverridden(string text, bool htmlEncode, string expectedResult)
         {
             // Arrange
@@ -158,7 +195,11 @@ namespace System.Web.Mvc.Html.Test
         }
 
         [Theory]
+<<<<<<< HEAD
         [PropertyData("ConditionallyHtmlEncodedData", PropertyType = typeof(EncodedDataSets))]
+=======
+        [PropertyData("DisplayTextData")]
+>>>>>>> origin/v3-rtm
         public void DisplayTextFor_HonoursHtmlEncode_IfOverridden(string text, bool htmlEncode, string expectedResult)
         {
             // Arrange
@@ -175,7 +216,11 @@ namespace System.Web.Mvc.Html.Test
         }
 
         [Theory]
+<<<<<<< HEAD
         [PropertyData("ConditionallyHtmlEncodedData", PropertyType = typeof(EncodedDataSets))]
+=======
+        [PropertyData("DisplayTextData")]
+>>>>>>> origin/v3-rtm
         public void DisplayText_HonoursHtmlEncode_ForProperty(string text, bool htmlEncode, string expectedResult)
         {
             // Arrange
@@ -196,7 +241,11 @@ namespace System.Web.Mvc.Html.Test
         }
 
         [Theory]
+<<<<<<< HEAD
         [PropertyData("ConditionallyHtmlEncodedData", PropertyType = typeof(EncodedDataSets))]
+=======
+        [PropertyData("DisplayTextData")]
+>>>>>>> origin/v3-rtm
         public void DisplayTextFor_HonoursHtmlEncode_ForProperty(string text, bool htmlEncode, string expectedResult)
         {
             // Arrange
@@ -401,7 +450,11 @@ namespace System.Web.Mvc.Html.Test
             public string NotEncoded { get; set; }
         }
 
+<<<<<<< HEAD
         // ModelMetadata.SimpleDisplayText returns ToString() displayForModelResult if that method has been overridden.
+=======
+        // ModelMetadata.SimpleDisplayText returns ToString() result if that method has been overridden.
+>>>>>>> origin/v3-rtm
         private sealed class OverriddenToStringModel
         {
             private readonly string _simpleDisplayText;
